@@ -4,6 +4,7 @@ import io
 import math
 import serial
 import struct
+import time
 
 class MoteusReg():
     # These constants can be found in:
@@ -196,19 +197,21 @@ class Controller:
         self.__send_can_frame(buf.getvalue(), reply=False)
 
 
-    def set_position(self, position, velocity=0., max_torque=0.5, ff_torque=0., kp_scale=1., kd_scale=1.,
-                     get_data=False, print_data=False):
+    def set_position(self, position, velocity=0., max_torque=0.5, ff_torque=0., kp_scale=1., kd_scale=1.,get_data=False, print_data=False):
         buf = io.BytesIO()
+
+        #setting the operation mode for the comtroller
         buf.write(struct.pack(
             "<bbb",
-            0x01,  # write int8 1x
-            MoteusReg.MOTEUS_REG_MODE,
-            MoteusMode.POSITION))
+            0x01,  # write int8 1x ; 
+            MoteusReg.MOTEUS_REG_MODE,  #write to this register
+            MoteusMode.POSITION))        #write this value
+        
         buf.write(struct.pack(
             "<bbbffffff",
             0x0c,
             6,  # write float32 6x
-            MoteusReg.MOTEUS_REG_POS_POSITION,
+            MoteusReg.MOTEUS_REG_POS_POSITION, #write to this register
             position,
             velocity,
             ff_torque,
@@ -264,9 +267,9 @@ class Controller:
         return self.__send_can_frame(buf.getvalue(), reply=True, print_data=print_data)
 
 
-    def setposdeg(self, deg):       #homming needed, coz if the move command starts from position motor is not now, it jumps and falls into safe mode
+    def setposdeg(self, deg):      
         pos=deg/360
-        if pos>1: pos=0.98    # encoder never reaches 1 or -1 so limit needs to lesser than that to be able to jump out of the while loop
+        if pos>1: pos=0.98   
         if pos<-1: pos=-0.98
         
         response_data_c1=self.get_data()
@@ -275,21 +278,23 @@ class Controller:
         if pos_deg_c1==pos:
             pass
         elif pos_deg_c1>pos:
-            print("in -ve looping")
-            r=pos_deg_c1
-            while pos_deg_c1>=pos:                
-                self.set_position(position=r, max_torque=2.2, kd_scale=0.2, get_data=True, print_data=False)
-                r=r-0.001
+            next_step=pos_deg_c1
+            while pos_deg_c1>=pos:         
+                time.sleep(0.0025)       
+                self.set_position(position=next_step, max_torque=0.2, kd_scale=0.2, get_data=True, print_data=True)
+                next_step=next_step-0.005
                 response_data_c1=self.get_data()
                 pos_deg_c1 = response_data_c1[MoteusReg.MOTEUS_REG_POSITION]
                 print(pos_deg_c1*360)
+                if(pos_deg_c1>1 or pos_deg_c1<-1):
+                    break
+
         elif pos_deg_c1<pos:
-            print("in -ve looping")
-            r=pos_deg_c1
-            while pos_deg_c1<=pos:
-                
-                self.set_position(position=r, velocity=1, max_torque=2.2, kd_scale=0.2, get_data=True, print_data=False)
-                r=r+0.001
+            next_step=pos_deg_c1
+            while pos_deg_c1<=pos:      
+                time.sleep(0.0025)          
+                self.set_position(position=next_step, velocity=1, max_torque=0.2, kd_scale=0.2, get_data=True, print_data=True)
+                next_step=next_step+0.005
                 response_data_c1=self.get_data()
                 pos_deg_c1 = response_data_c1[MoteusReg.MOTEUS_REG_POSITION]
                 print(pos_deg_c1*360)
