@@ -266,7 +266,6 @@ class Controller:
 
         return self.__send_can_frame(buf.getvalue(), reply=True, print_data=print_data)
 
-
     def setposdeg(self, deg):      
         pos=deg/360
         if pos>1: pos=0.98   
@@ -297,6 +296,6 @@ class Controller:
                 next_step=next_step+0.005
                 response_data_c1=self.get_data()
                 pos_deg_c1 = response_data_c1[MoteusReg.MOTEUS_REG_POSITION]
-                print(pos_deg_c1*360)
-
-
+                if(pos_deg_c1>1 or pos_deg_c1<-1):
+                    break
+    
