@@ -32,10 +32,39 @@ def home():
             controller_1.set_velocity(velocity=0.5)
 
 def main():
-    home()
+    #home()
     controller_1 = Controller(controller_ID = 1)
+    time.sleep(1)
+    print("attempting moving")
+    controller_1.set_position(position=0, velocity = 1, max_torque=0.2, kp_scale=2.6, kd_scale=1, get_data=True, print_data=False)
+    time.sleep(1)
+    response_data_c1=controller_1.get_data()
+    print(f"current pos {response_data_c1[MoteusReg.MOTEUS_REG_POSITION]}")
 
-    controller_1.set_position(0.5, max_torque=0.2, kd_scale=0.2, get_data=True, print_data=False)
+    controller_1.set_position(position=0.5, velocity = 2, max_torque=0.2, kp_scale=2.6, kd_scale=1, get_data=True, print_data=False)
+    time.sleep(1)
+    response_data_c1=controller_1.get_data()
+    print(f"current pos {response_data_c1[MoteusReg.MOTEUS_REG_POSITION]}")
+
+    controller_1.set_position(position=0, velocity = 1, max_torque=0.2, kp_scale=2.6, kd_scale=1, get_data=True, print_data=False)
+    time.sleep(1)
+    response_data_c1=controller_1.get_data()
+    print(f"current pos {response_data_c1[MoteusReg.MOTEUS_REG_POSITION]}")
+
+    
+    
+
+    #this pid gets the motor to needed position but the velocity control is not a thing for this case
+    '''
+    controller_1.set_position(position=0.5, velocity = 1, max_torque=0.2, kp_scale=0.1, kd_scale=0.1, get_data=True, print_data=False)
+    time.sleep(1)
+    controller_1.command_stop()
+    controller_1.set_position(position=0.9, velocity = 1, max_torque=0.2, kp_scale=0.1, kd_scale=0.1, get_data=True, print_data=False)
+    time.sleep(1)
+    controller_1.command_stop()
+    '''
+
+
 
     time.sleep(1)
   
